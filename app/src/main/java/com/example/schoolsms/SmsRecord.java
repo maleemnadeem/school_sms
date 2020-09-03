@@ -1,10 +1,9 @@
 package com.example.schoolsms;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.ContextCompat;
 
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
@@ -54,6 +53,10 @@ public class SmsRecord extends AppCompatActivity {
     DbAdapter dbAdapter;
     JSONArray smsJsonArray;
     Handler handler = new Handler();
+    TableLayout tableLayout;
+    private Context context = null;
+    TextView textSmsCount;
+
     int count =0;
 
     public SmsRecord(){
@@ -67,12 +70,15 @@ public class SmsRecord extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_sms_record);
+        context = getApplicationContext();
         URL = "http://".concat(dbAdapter.getData().concat(URL));
         Intent intent = getIntent();
         DATE = intent.getStringExtra("date");
         CLASS_NAME =  intent.getStringExtra("class_name");
         MSG_TYPE = intent.getStringExtra("msg_type");
         progressBar = (ProgressBar) findViewById(R.id.progressBar_cyclic);
+        tableLayout = (TableLayout)findViewById(R.id.table_layout_table);
+        textSmsCount = (TextView) findViewById(R.id.sms_status);
 
         try {
             URL = URL.concat("d="+DATE).concat("&c="+ URLEncoder.encode(CLASS_NAME, "UTF-8"))
@@ -99,42 +105,11 @@ public class SmsRecord extends AppCompatActivity {
 //                //progressBar.setVisibility(View.VISIBLE);
                 if (parser.getSmsData() != null && parser.getSmsData().length() < 1)
                 {
-                    AlertDialog.Builder builder = new AlertDialog.Builder(SmsRecord.this);
-                    builder.setMessage("Records not found. Please check the input ")
-                            .setCancelable(false)
-                            .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                                public void onClick(DialogInterface dialog, int id) {
-                                    Intent intent = new Intent(SmsRecord.this,MainActivity.class);
-                                    startActivity(intent);
-                                }
-                            });
-                    AlertDialog alert = builder.create();
-                    alert.show();
+                    Toast.makeText(getApplicationContext(), "No Records Found.", Toast.LENGTH_SHORT).show();
                 }
                 else {
+                    btnSend.setEnabled(false);
                     sendData.run();
-                   /* try {
-                        int i=0;
-
-                        for (final HashMap<String, String> smsData : parser.getSmsData()) {
-                            if(sendSMS(smsData.get("cell_num"),smsData.get("message")))
-                            {
-
-                            }
-                            else
-                            {
-
-                            }
-                            progressBar.setProgress(i);
-                            Thread.sleep(20000);
-                            i++;
-                        }
-                    }
-                    catch (InterruptedException ex)
-                    {
-
-                    }*/
-
                 }
 
             }
@@ -150,13 +125,27 @@ public class SmsRecord extends AppCompatActivity {
                     progressBar.setVisibility(View.VISIBLE);
                 JSONObject obj = smsJsonArray.getJSONObject(count);
                 Toast.makeText(getApplicationContext(), obj.getString("cell_no")+obj.getString("message"), Toast.LENGTH_SHORT).show();
+                dataToTable(obj.getString("std_rollno"),"Sent");
                 progressBar.setProgress(count);
+                textSmsCount.setText(count+1+" of "+smsJsonArray.length());
                 //sendSMS(obj.getString("cell_no"),obj.getString("message"));
                     handler.postDelayed(this, 5000);
             }
                 else {
+
                 handler.removeCallbacks(sendData);
+                    btnSend.setEnabled(true);
                 progressBar.setVisibility(View.INVISIBLE);
+                    AlertDialog alertDialog = new AlertDialog.Builder(SmsRecord.this).create();
+                    alertDialog.setTitle("Alert");
+                    alertDialog.setMessage("Message sent completely");
+                    alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK",
+                            new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int which) {
+                                    dialog.dismiss();
+                                }
+                            });
+                    alertDialog.show();
             }
             count++;
         } catch (JSONException e) {
@@ -203,5 +192,29 @@ public class SmsRecord extends AppCompatActivity {
         }
     }
 
+    private void dataToTable(String rollNumber, String status)
+    {
+        TableRow tableRow = new TableRow(context);
 
+        // Set new table row layout parameters.
+        TableRow.LayoutParams layoutParams = new TableRow.LayoutParams(TableRow.LayoutParams.WRAP_CONTENT);
+        tableRow.setLayoutParams(layoutParams);
+
+        // Add a TextView in the first column.
+        TextView txtRollNumber = new TextView(context);
+        txtRollNumber.setTextColor(Color.BLACK);
+        txtRollNumber.setBackgroundColor(Color.rgb(245,245,245));
+        txtRollNumber.setText(rollNumber+" ");
+        tableRow.addView(txtRollNumber, 0);
+
+        // Add a TextView in the first column.
+        TextView txtStatus = new TextView(context);
+        txtStatus.setTextColor(Color.BLACK);
+        txtStatus.setBackgroundColor(Color.rgb(220,220,220));
+        txtStatus.setText(status+" ");
+        tableRow.addView(txtStatus, 1);
+        tableLayout.addView(tableRow);
+    }
 }
+
+

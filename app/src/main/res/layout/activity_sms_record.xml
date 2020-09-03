@@ -54,9 +54,13 @@
     <ScrollView
         android:layout_width="fill_parent"
         android:layout_height="150pt"
-        tools:ignore="MissingConstraints"
-        tools:layout_editor_absoluteX="-16dp"
-        tools:layout_editor_absoluteY="214dp">
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.532"
+        tools:ignore="MissingConstraints">
 
         <TableLayout
             android:id="@+id/table_layout_table"
@@ -68,7 +72,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent">
 
-            <TableRow>
+            <TableRow tools:ignore="UselessParent">
 
                 <TextView
                     android:id="@+id/header_party_name"
@@ -88,6 +92,19 @@
 
         </TableLayout>
     </ScrollView>
+
+    <TextView
+        android:id="@+id/sms_status"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="0"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.456"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.193"
+    tools:ignore="MissingConstraints" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>
