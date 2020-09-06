@@ -45,7 +45,9 @@ public class SmsRecord extends AppCompatActivity {
     String  DATE;
     String CLASS_NAME;
     String MSG_TYPE;
+    //smsdata_all
     String URL = "/api/student/smsdata.php?";
+    boolean isAllClasses;
     JsonParser parser;
     TextView txtRecordCount;
     Button btnSend;
@@ -76,13 +78,25 @@ public class SmsRecord extends AppCompatActivity {
         DATE = intent.getStringExtra("date");
         CLASS_NAME =  intent.getStringExtra("class_name");
         MSG_TYPE = intent.getStringExtra("msg_type");
+        isAllClasses = intent.getBooleanExtra("is_all_classes",false);
         progressBar = (ProgressBar) findViewById(R.id.progressBar_cyclic);
         tableLayout = (TableLayout)findViewById(R.id.table_layout_table);
         textSmsCount = (TextView) findViewById(R.id.sms_status);
+        txtRecordCount = (TextView)findViewById(R.id.txt_record_count);
+        txtRecordCount.setText("Loading....");
+        progressBar.setVisibility(View.VISIBLE);
 
         try {
-            URL = URL.concat("d="+DATE).concat("&c="+ URLEncoder.encode(CLASS_NAME, "UTF-8"))
-                    .concat("&m="+ URLEncoder.encode(MSG_TYPE, "UTF-8"));
+            if(isAllClasses)
+            {
+                URL = "/api/student/smsdata_all.php?";
+                URL = "http://".concat(dbAdapter.getData().concat(URL));
+                URL = URL.concat("d=" + DATE).concat("&m=" + URLEncoder.encode(MSG_TYPE, "UTF-8"));
+            }
+            else {
+                URL = URL.concat("d=" + DATE).concat("&c=" + URLEncoder.encode(CLASS_NAME, "UTF-8"))
+                        .concat("&m=" + URLEncoder.encode(MSG_TYPE, "UTF-8"));
+            }
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }
@@ -92,20 +106,20 @@ public class SmsRecord extends AppCompatActivity {
             public void onSuccess(String result){
                 parser.setSmsData(result.toString());
                 txtRecordCount.setText(parser.getSmsData().length()+" Records are found");
+                progressBar.setVisibility(View.INVISIBLE);
             }
         });
         //Set Record count
-        txtRecordCount = (TextView)findViewById(R.id.txt_record_count);
        btnSend = (Button) findViewById(R.id.btn_send);
         btnSend.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                progressBar.setMax(parser.getSmsData().length());
-                smsJsonArray = parser.getSmsData();
+                //progressBar.setMax(parser.getSmsData().length());
                 count=0;
+                smsJsonArray = parser.getSmsData();
 //                //progressBar.setVisibility(View.VISIBLE);
-                if (parser.getSmsData() != null && parser.getSmsData().length() < 1)
+                if (smsJsonArray == null)
                 {
-                    Toast.makeText(getApplicationContext(), "No Records Found.", Toast.LENGTH_SHORT).show();
+                   Toast.makeText(getApplicationContext(), "No Record Found.", Toast.LENGTH_LONG).show();
                 }
                 else {
                     btnSend.setEnabled(false);
@@ -124,12 +138,12 @@ public class SmsRecord extends AppCompatActivity {
                 {
                     progressBar.setVisibility(View.VISIBLE);
                 JSONObject obj = smsJsonArray.getJSONObject(count);
-                Toast.makeText(getApplicationContext(), obj.getString("cell_no")+obj.getString("message"), Toast.LENGTH_SHORT).show();
+                //Toast.makeText(getApplicationContext(), obj.getString("cell_no")+obj.getString("message"), Toast.LENGTH_SHORT).show();
                 dataToTable(obj.getString("std_rollno"),"Sent");
                 progressBar.setProgress(count);
                 textSmsCount.setText(count+1+" of "+smsJsonArray.length());
-                //sendSMS(obj.getString("cell_no"),obj.getString("message"));
-                    handler.postDelayed(this, 5000);
+                sendSMS(obj.getString("cell_no"),obj.getString("message"));
+                    handler.postDelayed(this, 20000);
             }
                 else {
 
@@ -187,7 +201,8 @@ public class SmsRecord extends AppCompatActivity {
             return true;
         }
         catch (Exception e){
-            Toast.makeText(getApplicationContext(), e.getMessage() ,Toast.LENGTH_SHORT).show();
+            Toast.makeText(getApplicationContext(), e.getMessage() ,Toast.LENGTH_LONG).show();
+            System.out.println(e.getMessage());
             return false;
         }
     }
@@ -214,6 +229,13 @@ public class SmsRecord extends AppCompatActivity {
         txtStatus.setText(status+" ");
         tableRow.addView(txtStatus, 1);
         tableLayout.addView(tableRow);
+    }
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        handler.removeCallbacks(sendData);
+        // Always call the superclass method first
+        Toast.makeText(getApplicationContext(), "process is stopped", Toast.LENGTH_LONG).show();
     }
 }
 

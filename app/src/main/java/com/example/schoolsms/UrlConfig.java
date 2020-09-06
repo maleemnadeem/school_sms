@@ -17,9 +17,9 @@ public class UrlConfig extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
         dbAdapter = new DbAdapter(this);
         if(dbAdapter.getData().equalsIgnoreCase("")) {
-            super.onCreate(savedInstanceState);
             setContentView(R.layout.activity_url_config);
             Button btnSave = (Button) findViewById(R.id.save);
             txtUrl = (EditText) findViewById(R.id.url);

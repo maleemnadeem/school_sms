@@ -16,6 +16,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ProgressBar;
@@ -35,6 +36,7 @@ public class MainActivity extends AppCompatActivity {
     DatePickerDialog datePicker;
     ProgressBar viewProgressBar;
     EditText txtDate;
+    CheckBox isAllClass;
     //http://royalfoodindustries.com.pk
     String url = "/api/student/read.php";
     JsonParser parser = new JsonParser();
@@ -49,6 +51,7 @@ public class MainActivity extends AppCompatActivity {
         dbAdapter = new DbAdapter(this);
         url = "http://".concat(dbAdapter.getData().concat(url));
         System.out.println(url);
+        isAllClass = (CheckBox) findViewById(R.id.is_all_classes);
         txtDate=(EditText) findViewById(R.id.txt_date);
         txtDate.setInputType(InputType.TYPE_NULL);
         txtDate.setOnClickListener(new View.OnClickListener() {
@@ -73,10 +76,10 @@ public class MainActivity extends AppCompatActivity {
         //spinner for class name
         classNameSpin = (Spinner) findViewById(R.id.class_name);
         msgTypeSpin = (Spinner) findViewById(R.id.msg_type);
-        viewProgressBar = (ProgressBar)findViewById(R.id.progressBar1);
+        viewProgressBar = (ProgressBar)findViewById(R.id.loading_bar);
         viewProgressBar.setVisibility(View.VISIBLE);
         sendAndRequestResponse();
-        viewProgressBar.setVisibility(View.INVISIBLE);
+        //viewProgressBar.setVisibility(View.INVISIBLE);
         //GO Button
         Button btnGo = (Button) findViewById(R.id.btn_go);
         btnGo.setOnClickListener(new View.OnClickListener() {
@@ -86,6 +89,8 @@ public class MainActivity extends AppCompatActivity {
                     intent.putExtra("date", txtDate.getText().toString());
                     intent.putExtra("class_name", classNameSpin.getSelectedItem().toString());
                     intent.putExtra("msg_type", msgTypeSpin.getSelectedItem().toString());
+                    intent.putExtra("msg_type", msgTypeSpin.getSelectedItem().toString());
+                    intent.putExtra("is_all_classes", isAllClass.isChecked());
                     startActivity(intent);
                 }
                 else {
@@ -127,6 +132,7 @@ public class MainActivity extends AppCompatActivity {
                 parser.confiData(response.toString());
                 addDataToSpin(classNameSpin,parser.getClassName());
                 addDataToSpin(msgTypeSpin,parser.getMsgType());
+                viewProgressBar.setVisibility(View.INVISIBLE);
 
                 //System.out.println("Result"+response.toString());
 
@@ -149,4 +155,11 @@ public class MainActivity extends AppCompatActivity {
         classNameAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spin.setAdapter(classNameAdapter);
     }
+
+    protected void onDestroy() {
+        super.onDestroy();
+        finish();
+        moveTaskToBack(true);
+    }
+
 }
